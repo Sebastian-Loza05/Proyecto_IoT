@@ -4,9 +4,18 @@ from fastapi import FastAPI
 from app.system.routes import router
 from app.services.mqtt_service import mqtt_listener
 from app.core.config import settings
+from app.db.database import async_engine, Base
+from app.db import models
+
+async def create_tables():
+    _ = models
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    await create_tables()
     # Inicio: Arrancar el listener MQTT en segundo plano
     task = asyncio.create_task(mqtt_listener())
     yield

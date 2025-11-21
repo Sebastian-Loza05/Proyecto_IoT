@@ -8,6 +8,7 @@ async_engine = create_async_engine(DATABASE_URL, echo=False)
 
 AsyncSessionLocal = async_sessionmaker(
     async_engine,
+    echo=True,
     expire_on_commit=False,
     class_=AsyncSession
 )
