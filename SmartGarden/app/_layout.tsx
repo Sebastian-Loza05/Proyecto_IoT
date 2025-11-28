@@ -1,33 +1,27 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
-import { SessionProvider, useSession } from '../context/AuthContext';
+import React from 'react';
+import { Stack } from 'expo-router';
+import { SessionProvider, useSession } from '@/context/AuthContext';
 import { SplashScreenController } from '@/components/splash';
-import { Href } from 'expo-router';
 
 function RootNavigator() {
   const { session, isLoading } = useSession();
-  const segments = useSegments();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return;
+  // Mientras carga el token desde SecureStore dejamos que el Splash lo maneje
+  if (isLoading) {
+    return null;
+  }
 
-    const inAuthGroup = (segments[0] as string) === 'auth';
-
-    if (!session && !inAuthGroup) {
-      // Redirigir a login
-      router.replace('/auth/login' as Href);
-    } else if (session && inAuthGroup) {
-      // Redirigir a dashboard
-      router.replace('/(app)/' as Href);
-    }
-  }, [session, isLoading, segments]);
+  const isAuthenticated = !!session;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
-      <Stack.Screen name="(app)" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="+not-found" /> */}
+      {isAuthenticated ? (
+        // Si hay sesión, solo mostramos la app
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      ) : (
+        // Si NO hay sesión, solo mostramos auth (login/register)
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+      )}
     </Stack>
   );
 }

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Href, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { useSession } from '../../context/AuthContext';
+import { useSession } from '@/context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const COLORS = {
@@ -37,16 +37,21 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) return;
 
-    setIsSubmitting(true);
-    // Simulación de delay de red (Lógica original intacta)
-    setTimeout(() => {
-      signIn('dummy-token-123');
-      setIsSubmitting(false);
-    }, 1500);
+  const handleLogin = async () => {
+  if (!email || !password) return;
+
+  setIsSubmitting(true);
+
+  setTimeout(() => {
+    signIn('dummy-token-123');
+
+    setIsSubmitting(false);
+
+    router.replace('/(app)/' as Href);
+  }, 1500);
   };
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -131,7 +136,7 @@ export default function Login() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
+            <TouchableOpacity onPress={() => router.push('/auth/register')}>
               <Text style={styles.linkText}>Regístrate</Text>
             </TouchableOpacity>
           </View>
