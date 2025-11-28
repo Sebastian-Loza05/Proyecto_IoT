@@ -12,11 +12,11 @@ function RootNavigator() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = (segments[0] as string) === '(auth)';
+    const inAuthGroup = (segments[0] as string) === 'auth';
 
     if (!session && !inAuthGroup) {
       // Redirigir a login
-      router.replace('/(auth)/login' as Href);
+      router.replace('/auth/login' as Href);
     } else if (session && inAuthGroup) {
       // Redirigir a dashboard
       router.replace('/(app)/' as Href);
@@ -25,7 +25,7 @@ function RootNavigator() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="(app)" options={{ headerShown: false }} />
       {/* <Stack.Screen name="+not-found" /> */}
     </Stack>
