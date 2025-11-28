@@ -6,6 +6,7 @@ from app.services.mqtt_service import mqtt_listener
 from app.core.config import settings
 from app.db.database import async_engine, Base
 from app.db import models
+import aiomqtt
 
 async def create_tables():
     _ = models
@@ -16,10 +17,22 @@ async def create_tables():
 async def lifespan(app: FastAPI):
 
     await create_tables()
-    # Inicio: Arrancar el listener MQTT en segundo plano
-    task = asyncio.create_task(mqtt_listener())
-    yield
-    task.cancel()
+    async with aiomqtt.Client(settings.MQTT_BROKER, settings.MQTT_PORT) as client:
+        print(" >>> Cliente MQTT (Publisher) Conectado.")
+        app.state.mqtt = client
+
+        listener_task = asyncio.create_task(mqtt_listener())
+
+        yield
+
+        print(" >>> Apagando servicios...")
+        listener_task.cancel()
+        try:
+            await listener_task
+        except asyncio.CancelledError:
+            pass
+
+    print(" >>> Cliente MQTT desconectado.")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

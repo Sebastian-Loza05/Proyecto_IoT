@@ -10,6 +10,9 @@ def hex_to_ascii(hex_str):
         print(f"[!] Error al decodificar: {e}")
         return ""
 
+def ascii_to_hex(text):
+    return text.encode('utf-8').hex()
+
 def identificar_topico(mensaje_str):
     if "hum" in mensaje_str.lower():
         return "invernadero/humedad"
@@ -56,7 +59,6 @@ async def main():
                     if "+EVT:RXP2P" in linea:
                         partes = linea.split(":")
                         # El formato suele ser: +EVT:RXP2P:-50:10:4:AABBCC
-                        # El último elemento es la data
                         if len(partes) >= 4:
                             data_hex = partes[-1].strip()
 
@@ -66,7 +68,7 @@ async def main():
                         contenido = linea.replace("at+recv=", "").strip()
                         partes = contenido.split(",")
                         if len(partes) >= 3:
-                            data_hex = partes[-1].strip() # El último suele ser la data
+                            data_hex = partes[-1].strip()  # El último suele ser la data
 
                     # Si obtuvimos datos HEX válidos
                     if data_hex:
@@ -80,18 +82,6 @@ async def main():
                         except Exception as e:
                             print(f" [MQTT Error] {e}")
 
-                    # if "recv=" in linea:
-                    #     partes = linea.split(",")
-                    #     if len(partes) >= 2:
-                    #         hex_data = partes[1].strip()
-                    #         ascii_data = hex_to_ascii(hex_data).strip()
-                    #         print(f" Dato recibido: {ascii_data}")
-                    #
-                    #         topico = identificar_topico(ascii_data)
-                    #         await mqtt_client.publish(topico, ascii_data)
-                    #         print(f"[MQTT] Publicado en {topico}: {ascii_data}\n")
-                    #     else:
-                    #         print("[!] Formato incorrecto")
                 await asyncio.sleep(0.1)
 
         except KeyboardInterrupt:

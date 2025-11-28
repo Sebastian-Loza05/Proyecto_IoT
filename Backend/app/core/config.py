@@ -9,7 +9,6 @@ class Settings(BaseSettings):
     # MQTT
     MQTT_BROKER: str
     MQTT_PORT: int = 1883
-    MQTT_TOPIC: str = "rak/sensors/ya_veremos_xd"
 
     # Auth
     SECRET_KEY: str

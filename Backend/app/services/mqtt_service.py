@@ -13,11 +13,11 @@ async def mqtt_listener(
     while True:
         try:
             async with aiomqtt.Client(settings.MQTT_BROKER, settings.MQTT_PORT) as client:
-                await client.subscribe(settings.MQTT_TOPIC)
+                await client.subscribe("invernadero/temperatura")
                 async for message in client.messages:
                     payload = message.payload.decode()
                     print(f"Recibido: {payload}")
-                    data = json.loads(payload)
+                    # data = json.loads(payload)
 
                     # Guadar la data en la base de datos
 
