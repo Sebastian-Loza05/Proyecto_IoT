@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from sqlalchemy import select
 from datetime import datetime
-from db.models import Sensor, DeviceSensor
+from app.db.models import Sensor, DeviceSensor
 
 async def save_sensor_data(db: AsyncSession, device_id: int, data: dict):
     now = datetime.now()
@@ -60,11 +60,7 @@ async def mqtt_listener(
                         device_id = data.get("device_id", 1)
 
                         await save_sensor_data(db, device_id, data)
-                    # data = json.loads(payload)
 
-                    # Guadar la data en la base de datos
-
-                    # Enviar a la App Móvil en tiempo real
                         await manager.broadcast(payload)
                     except json.JSONDecodeError:
                         print(" [Error] JSON inválido recibido")
