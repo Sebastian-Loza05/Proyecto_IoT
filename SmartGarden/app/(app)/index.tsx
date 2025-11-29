@@ -11,6 +11,7 @@ import AppHeader from '@/components/AppHeader';
 import { useSession } from '@/context/AuthContext';
 import { Href, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useSensorSocket } from '@/utils/useSensorSockets';
 
 const COLORS = {
   background: '#eff6ff',
@@ -30,6 +31,7 @@ const COLORS = {
 export default function HomeScreen() {
   const { signOut } = useSession();
   const router = useRouter();
+  const { data, isConnected } = useSensorSocket();
 
   const handleLogout = () => {
     signOut();
@@ -97,7 +99,9 @@ export default function HomeScreen() {
                     />
                   </View>
                   <Text style={styles.metricLabel}>Temp.</Text>
-                  <Text style={styles.metricValue}>24.5°C</Text>
+                  <Text style={styles.metricValue}>
+                    {data?.temperatura !== undefined ? data.temperatura : '--'}°C
+                  </Text>
                 </View>
 
                 <View style={styles.metricCard}>
@@ -109,7 +113,9 @@ export default function HomeScreen() {
                     />
                   </View>
                   <Text style={styles.metricLabel}>Humedad</Text>
-                  <Text style={styles.metricValue}>68%</Text>
+                  <Text style={styles.metricValue}>
+                    {data?.humedad !== undefined ? data.humedad : '--'}%
+                  </Text>
                 </View>
 
                 <View style={styles.metricCard}>
@@ -117,7 +123,9 @@ export default function HomeScreen() {
                     <Feather name="sun" size={18} color={COLORS.primary} />
                   </View>
                   <Text style={styles.metricLabel}>Luz</Text>
-                  <Text style={styles.metricValue}>82%</Text>
+                  <Text style={styles.metricValue}>
+                    {data?.luz !== undefined ? data.luz : '--'}%
+                  </Text>
                 </View>
               </View>
             </View>

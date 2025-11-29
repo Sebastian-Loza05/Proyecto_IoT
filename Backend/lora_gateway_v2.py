@@ -28,12 +28,12 @@ async def tarea_leer_lora(puerto, mqtt_client, serial_lock, estado_global):
     while True:
         try:
             linea = None
-            
+
             # 1. Leer del puerto Serial (Bloqueo mínimo)
             async with serial_lock:
                 if puerto.in_waiting > 0:
                     linea = puerto.readline().decode('utf-8', errors='ignore').strip()
-            
+
             # 2. Procesar datos fuera del lock
             if linea:
                 # print(f"[RAW] {linea}") # Debug
