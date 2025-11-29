@@ -16,7 +16,7 @@ async def create_tables():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    await create_tables()
+    # await create_tables()
     async with aiomqtt.Client(settings.MQTT_BROKER, settings.MQTT_PORT) as client:
         print(" >>> Cliente MQTT (Publisher) Conectado.")
         app.state.mqtt = client
