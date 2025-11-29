@@ -13,16 +13,30 @@ async def mqtt_listener(
     while True:
         try:
             async with aiomqtt.Client(settings.MQTT_BROKER, settings.MQTT_PORT) as client:
-                await client.subscribe("invernadero/temperatura")
+                await client.subscribe("invernadero/sensores")
                 async for message in client.messages:
                     payload = message.payload.decode()
                     print(f"Recibido: {payload}")
+                    try:
+                        # 1. Convertir string a Diccionario Python
+                        data = json.loads(payload)
+
+                        # 2. Imprimir valores individuales
+                        temp = data.get("temperatura")
+                        hum = data.get("humedad")
+                        luz = data.get("luz")
+
+                        print(f" ➤ Temperatura procesada: {temp} °C")
+                        print(f" ➤ Humedad procesada: {hum} %")
+                        print(f" ➤ Luz procesada: {luz}")
                     # data = json.loads(payload)
 
                     # Guadar la data en la base de datos
 
                     # Enviar a la App Móvil en tiempo real
-                    await manager.broadcast(payload)
+                        await manager.broadcast(payload)
+                    except json.JSONDecodeError:
+                        print(" [Error] JSON inválido recibido")
 
         except Exception as e:
             print(f"Error en MQTT: {e}. Reintentando en 5s...")
