@@ -65,7 +65,7 @@ export default function Register() {
       console.log("Registrando usuario:", formData);
       setIsSubmitting(false);
       // Aquí redirigimos al login tras el registro exitoso
-      router.replace('/login'); 
+      router.replace('/auth/login'); 
     }, 1500);
   };
 
@@ -232,7 +232,7 @@ export default function Register() {
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <TouchableOpacity onPress={() => router.push('/auth/login')}>
                 <Text style={styles.linkText}>Inicia Sesión</Text>
               </TouchableOpacity>
             </View>

@@ -1,26 +1,28 @@
-import { useContext, createContext, type PropsWithChildren, useState, useEffect } from 'react';
+// context/AuthContext.tsx
+import {
+  useContext,
+  createContext,
+  type PropsWithChildren,
+  useState,
+  useEffect,
+} from 'react';
 import * as SecureStore from 'expo-secure-store';
 
 interface AuthContextType {
   signIn: (token: string) => void;
   signOut: () => void;
-  session?: string | null;
+  session: string | null;
   isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  signIn: () => {},
-  signOut: () => {},
-  session: null,
-  isLoading: true,
-});
+// OJO: SIN valor por defecto con funciones vacías
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function useSession() {
   const value = useContext(AuthContext);
   if (!value) {
     throw new Error('useSession must be wrapped in a <SessionProvider />');
   }
-
   return value;
 }
 
@@ -38,17 +40,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
     });
   }, []);
 
+  const signIn = (token: string) => {
+    setSession(token);
+    SecureStore.setItemAsync('user-token', token);
+  };
+
+  const signOut = () => {
+    console.log('signOut called'); // para comprobar en la consola
+    setSession(null);
+    SecureStore.deleteItemAsync('user-token');
+  };
+
   return (
     <AuthContext.Provider
       value={{
-        signIn: (token) => {
-          setSession(token);
-          SecureStore.setItemAsync('user-token', token);
-        },
-        signOut: () => {
-          setSession(null);
-          SecureStore.deleteItemAsync('user-token');
-        },
+        signIn,
+        signOut,
         session,
         isLoading,
       }}
