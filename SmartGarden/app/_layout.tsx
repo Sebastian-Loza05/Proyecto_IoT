@@ -4,6 +4,7 @@ import { SessionProvider, useSession } from '@/context/AuthContext';
 import { SplashScreenController } from '@/components/splash';
 import { Platform } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function RootNavigator() {
   const { session, isLoading } = useSession();
@@ -18,8 +19,9 @@ function RootNavigator() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        // Si hay sesión, solo mostramos la app
+         <SafeAreaProvider>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        </SafeAreaProvider>
       ) : (
         // Si NO hay sesión, solo mostramos auth (login/register)
         <Stack.Screen name="auth" options={{ headerShown: false }} />

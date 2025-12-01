@@ -43,7 +43,7 @@ export default function AppHeader({ subtitle = 'Invernadero Inteligente' }: Prop
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 16,
+    paddingTop: 0,
     marginBottom: 0,
     backgroundColor: COLORS.card,
   },

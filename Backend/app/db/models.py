@@ -75,3 +75,20 @@ class Sensor(Base):
     __table_args__ = (
         PrimaryKeyConstraint("sensor_id"),
     )
+
+class DeviceConfiguration(Base):
+    __tablename__ = "device_configuration"
+
+    device_configuration_id: Mapped[int] = mapped_column(Identity(start=1))
+    device_id: Mapped[int] = mapped_column(nullable=False)
+
+    actuador: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    value: Mapped[int] = mapped_column(nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("device_configuration_id"),
+        ForeignKeyConstraint(
+            ["device_id"],
+            ["device.device_id"],
+        ),
+    )

@@ -47,27 +47,6 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* ACTIVIDAD RECIENTE */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Actividad Reciente</Text>
-            </View>
-
-            <View style={styles.activityCard}>
-              <View style={styles.row}>
-                <View style={styles.iconCircleBlue}>
-                  <Feather name="droplet" size={18} color={COLORS.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.activityTitle}>
-                    Bomba de Agua activado
-                  </Text>
-                  <Text style={styles.activitySubtitle}>hace 2 min</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
           {/* ESTADO DE LAS ZONAS */}
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '@/components/AppHeader';
@@ -19,12 +20,47 @@ const COLORS = {
   success: '#16a34a',
 };
 
-const tempPoints = [18, 14, 19, 22, 23, 22, 20];
-const humPoints = [65, 70, 68, 62, 64, 66, 68];
-const lightPoints = [5, 10, 35, 80, 60, 30, 15];
+const API_BASE = 'http://192.168.0.223:8000/system/data-sensors/1';
+
+type DeviceSensor = {
+  device_sensor_id: number;
+  device_id: number;
+  sensor_id: number;
+  value: number;
+  event_date: string;
+  event_time: string;
+};
+
+type SensorRawResponse = {
+  device_sensors: DeviceSensor[];
+};
+
+type SensorParsed = {
+  points: number[];
+  current: number;
+  delta: number;
+};
 
 function MiniChart({ points }: { points: number[] }) {
-  // Esqueleto simple de línea: puntos alineados en X con distintas alturas
+  if (!points || points.length === 0) {
+    return (
+      <View style={styles.chartArea}>
+        <View style={styles.chartBaseline} />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 11, color: COLORS.textSecondary }}>
+            Sin datos
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.chartArea}>
       <View style={styles.chartBaseline} />
@@ -39,7 +75,92 @@ function MiniChart({ points }: { points: number[] }) {
   );
 }
 
+function useSensorData(sensorId: number) {
+  const [data, setData] = useState<SensorParsed | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchSensor() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const url = `${API_BASE}?sensor_id=${sensorId}`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const json: SensorRawResponse = await res.json();
+
+        const list = json.device_sensors ?? [];
+        const points = list.map((d) => Number(d.value)).filter((v) => !isNaN(v));
+
+        let current = 0;
+        let delta = 0;
+
+        if (points.length > 0) {
+          current = points[points.length - 1];
+          const first = points[0];
+
+          if (first !== 0) {
+            delta = ((current - first) / first) * 100;
+          } else {
+            delta = 0;
+          }
+        }
+
+        if (isMounted) {
+          setData({ points, current, delta });
+        }
+      } catch (e: any) {
+        console.error('Error fetching sensor', sensorId, e);
+        if (isMounted) {
+          setError(e?.message ?? 'Error desconocido');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchSensor();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sensorId]);
+
+  return { data, loading, error };
+}
+
 export default function AnalyticsScreen() {
+  // 1 = temperatura, 2 = humedad, 3 = luz
+  const {
+    data: tempData,
+    loading: tempLoading,
+    error: tempError,
+  } = useSensorData(1);
+
+  const {
+    data: humData,
+    loading: humLoading,
+    error: humError,
+  } = useSensorData(2);
+
+  const {
+    data: lightData,
+    loading: lightLoading,
+    error: lightError,
+  } = useSensorData(3);
+
+  const anyLoading = tempLoading || humLoading || lightLoading;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -53,51 +174,128 @@ export default function AnalyticsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Evolución de Parámetros</Text>
 
+            {anyLoading && (
+              <View style={{ marginBottom: 12, alignItems: 'center' }}>
+                <ActivityIndicator />
+                <Text style={{ fontSize: 12, color: COLORS.textSecondary }}>
+                  Cargando datos de sensores...
+                </Text>
+              </View>
+            )}
+
             {/* Temperatura */}
             <View style={styles.graphCard}>
               <Text style={styles.graphTitle}>Temperatura (°C)</Text>
               <View style={styles.graphHeaderRow}>
-                <Text style={styles.graphMainValue}>23°C</Text>
-                <Text style={styles.graphDeltaDown}>↓ 8%</Text>
+                <Text style={styles.graphMainValue}>
+                  {tempData ? `${tempData.current.toFixed(1)}°C` : '--'}
+                </Text>
+
+                {tempData ? (
+                  <Text
+                    style={
+                      tempData.delta >= 0
+                        ? styles.graphDeltaUp
+                        : styles.graphDeltaDown
+                    }
+                  >
+                    {tempData.delta >= 0 ? '↑' : '↓'}{' '}
+                    {Math.abs(tempData.delta).toFixed(1)}%
+                  </Text>
+                ) : tempError ? (
+                  <Text style={styles.graphDeltaDown}>Error</Text>
+                ) : (
+                  <Text style={styles.graphDeltaDown}>...</Text>
+                )}
               </View>
-              <MiniChart points={tempPoints} />
+              <MiniChart points={tempData?.points ?? []} />
             </View>
 
             {/* Humedad */}
             <View style={styles.graphCard}>
               <Text style={styles.graphTitle}>Humedad (%)</Text>
               <View style={styles.graphHeaderRow}>
-                <Text style={styles.graphMainValue}>68%</Text>
-                <Text style={styles.graphDeltaUp}>↑ 4.6%</Text>
+                <Text style={styles.graphMainValue}>
+                  {humData ? `${humData.current.toFixed(1)}%` : '--'}
+                </Text>
+
+                {humData ? (
+                  <Text
+                    style={
+                      humData.delta >= 0
+                        ? styles.graphDeltaUp
+                        : styles.graphDeltaDown
+                    }
+                  >
+                    {humData.delta >= 0 ? '↑' : '↓'}{' '}
+                    {Math.abs(humData.delta).toFixed(1)}%
+                  </Text>
+                ) : humError ? (
+                  <Text style={styles.graphDeltaDown}>Error</Text>
+                ) : (
+                  <Text style={styles.graphDeltaDown}>...</Text>
+                )}
               </View>
-              <MiniChart points={humPoints} />
+              <MiniChart points={humData?.points ?? []} />
             </View>
 
             {/* Luz */}
             <View style={styles.graphCard}>
               <Text style={styles.graphTitle}>Nivel de Luz (%)</Text>
               <View style={styles.graphHeaderRow}>
-                <Text style={styles.graphMainValue}>10%</Text>
-                <Text style={styles.graphDeltaDown}>↓ 83.3%</Text>
+                <Text style={styles.graphMainValue}>
+                  {lightData ? `${lightData.current.toFixed(1)}%` : '--'}
+                </Text>
+
+                {lightData ? (
+                  <Text
+                    style={
+                      lightData.delta >= 0
+                        ? styles.graphDeltaUp
+                        : styles.graphDeltaDown
+                    }
+                  >
+                    {lightData.delta >= 0 ? '↑' : '↓'}{' '}
+                    {Math.abs(lightData.delta).toFixed(1)}%
+                  </Text>
+                ) : lightError ? (
+                  <Text style={styles.graphDeltaDown}>Error</Text>
+                ) : (
+                  <Text style={styles.graphDeltaDown}>...</Text>
+                )}
               </View>
-              <MiniChart points={lightPoints} />
+              <MiniChart points={lightData?.points ?? []} />
             </View>
           </View>
 
-          {/* ESTADÍSTICAS DE HOY */}
+          {/* ESTADÍSTICAS DE HOY (por ahora estático; puedes conectar luego a otro endpoint) */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Estadísticas de Hoy</Text>
 
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
                 <Text style={styles.statTitle}>Temp. Promedio</Text>
-                <Text style={styles.statValue}>24.3°C</Text>
+                <Text style={styles.statValue}>
+                  {tempData
+                    ? `${(
+                        tempData.points.reduce((a, b) => a + b, 0) /
+                        tempData.points.length
+                      ).toFixed(1)}°C`
+                    : '24.3°C'}
+                </Text>
                 <Text style={styles.statDeltaUp}>↑ 1.2°C vs ayer</Text>
               </View>
 
               <View style={styles.statCard}>
                 <Text style={styles.statTitle}>Humedad Media</Text>
-                <Text style={styles.statValue}>67%</Text>
+                <Text style={styles.statValue}>
+                  {humData
+                    ? `${(
+                        humData.points.reduce((a, b) => a + b, 0) /
+                        humData.points.length
+                      ).toFixed(1)}%`
+                    : '67%'}
+                </Text>
                 <Text style={styles.statDeltaNeutral}>• Sin cambios</Text>
               </View>
 

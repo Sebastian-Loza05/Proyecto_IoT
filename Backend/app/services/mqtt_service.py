@@ -56,7 +56,6 @@ async def save_sensor_data(device_id: int, data: dict):
 
 
 async def mqtt_listener():
-    print("HOLAAAA")
     while True:
         try:
             async with aiomqtt.Client(settings.MQTT_BROKER, settings.MQTT_PORT) as client:
