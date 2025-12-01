@@ -162,6 +162,30 @@ export default function AnalyticsScreen() {
 
   const anyLoading = tempLoading || humLoading || lightLoading;
 
+  // Helpers para estadísticas de hoy en base a los puntos de las gráficas
+  const tempPoints = tempData?.points ?? [];
+  const humPoints = humData?.points ?? [];
+  const lightPoints = lightData?.points ?? [];
+
+  const calcAvg = (arr: number[]) =>
+    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+
+  const calcMin = (arr: number[]) =>
+    arr.length > 0 ? Math.min(...arr) : null;
+
+  const calcMax = (arr: number[]) =>
+    arr.length > 0 ? Math.max(...arr) : null;
+
+  const tempAvg = calcAvg(tempPoints);
+  const tempMin = calcMin(tempPoints);
+  const tempMax = calcMax(tempPoints);
+
+  const humAvg = calcAvg(humPoints);
+  const humMin = calcMin(humPoints);
+  const humMax = calcMax(humPoints);
+
+  const lightAvg = calcAvg(lightPoints);
+  const lightMax = calcMax(lightPoints);
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -274,42 +298,64 @@ export default function AnalyticsScreen() {
             <Text style={styles.sectionTitle}>Estadísticas de Hoy</Text>
 
             <View style={styles.statsGrid}>
+              {/* 1. Temperatura promedio de hoy */}
               <View style={styles.statCard}>
-                <Text style={styles.statTitle}>Temp. Promedio</Text>
+                <Text style={styles.statTitle}>Temp. promedio de hoy</Text>
                 <Text style={styles.statValue}>
-                  {tempData
-                    ? `${(
-                        tempData.points.reduce((a, b) => a + b, 0) /
-                        tempData.points.length
-                      ).toFixed(1)}°C`
-                    : '24.3°C'}
+                  {tempAvg !== null ? `${tempAvg.toFixed(1)}°C` : '--'}
                 </Text>
-                <Text style={styles.statDeltaUp}>↑ 1.2°C vs ayer</Text>
+                <Text style={styles.statDeltaNeutral}>
+                  {tempPoints.length > 0
+                    ? `Basado en ${tempPoints.length} lecturas`
+                    : 'Sin lecturas registradas'}
+                </Text>
               </View>
 
+              {/* 2. Rango de temperatura de hoy */}
               <View style={styles.statCard}>
-                <Text style={styles.statTitle}>Humedad Media</Text>
+                <Text style={styles.statTitle}>Rango de temperatura</Text>
                 <Text style={styles.statValue}>
-                  {humData
-                    ? `${(
-                        humData.points.reduce((a, b) => a + b, 0) /
-                        humData.points.length
-                      ).toFixed(1)}%`
-                    : '67%'}
+                  {tempMin !== null && tempMax !== null
+                    ? `${tempMin.toFixed(1)}°C – ${tempMax.toFixed(1)}°C`
+                    : '--'}
                 </Text>
-                <Text style={styles.statDeltaNeutral}>• Sin cambios</Text>
+                <Text style={styles.statDeltaNeutral}>
+                  {tempMin !== null && tempMax !== null
+                    ? 'Variación durante el día'
+                    : 'Sin datos suficientes'}
+                </Text>
               </View>
 
+              {/* 3. Humedad promedio de hoy */}
               <View style={styles.statCard}>
-                <Text style={styles.statTitle}>Horas de Luz</Text>
-                <Text style={styles.statValue}>8.5h</Text>
-                <Text style={styles.statDeltaDown}>↓ 0.3h vs ayer</Text>
+                <Text style={styles.statTitle}>Humedad promedio</Text>
+                <Text style={styles.statValue}>
+                  {humAvg !== null ? `${humAvg.toFixed(1)}%` : '--'}
+                </Text>
+                <Text style={styles.statDeltaNeutral}>
+                  {humPoints.length > 0
+                    ? `Rango: ${
+                        humMin !== null ? humMin.toFixed(1) : '--'
+                      }% – ${
+                        humMax !== null ? humMax.toFixed(1) : '--'
+                      }%`
+                    : 'Sin lecturas registradas'}
+                </Text>
               </View>
 
+              {/* 4. Luz promedio de hoy */}
               <View style={styles.statCard}>
-                <Text style={styles.statTitle}>Agua Usada</Text>
-                <Text style={styles.statValue}>42.5L</Text>
-                <Text style={styles.statDeltaUp}>↑ 5.2L vs ayer</Text>
+                <Text style={styles.statTitle}>Nivel de luz promedio</Text>
+                <Text style={styles.statValue}>
+                  {lightAvg !== null ? `${lightAvg.toFixed(1)}%` : '--'}
+                </Text>
+                <Text style={styles.statDeltaNeutral}>
+                  {lightPoints.length > 0
+                    ? `Máximo registrado: ${
+                        lightMax !== null ? lightMax.toFixed(1) : '--'
+                      }%`
+                    : 'Sin lecturas registradas'}
+                </Text>
               </View>
             </View>
           </View>

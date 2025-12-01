@@ -116,6 +116,16 @@ function ActuatorCard(props: ActuatorCardProps) {
     });
   };
 
+  useEffect(() => {
+    if (!configStatus) return;
+
+    const id = setTimeout(() => {
+      setConfigStatus(null);
+    }, 3000); // 3 segundos
+
+    return () => clearTimeout(id);
+  }, [configStatus]);
+
   const handleSaveConfig = async () => {
     if (!canConfigureDuration || isActionLocked) return;
     try {
@@ -133,6 +143,8 @@ function ActuatorCard(props: ActuatorCardProps) {
       });
 
       setConfigStatus(`Configuración guardada correctamente (${seconds} s)`);
+
+      setShowConfig(false);
     } catch (error) {
       console.error('Error guardando configuración', error);
       setConfigStatus('Error al actualizar configuración');
@@ -275,85 +287,94 @@ function ActuatorCard(props: ActuatorCardProps) {
       </View>
 
       {/* Configuración */}
+
       <View style={styles.configCard}>
-        <View>
-          <Text style={styles.configTitle}>Configuración</Text>
+        {/* Fila principal: texto izquierda + controles derecha */}
+        <View style={styles.configRow}>
+          {/* Columna izquierda */}
+          <View>
+            <Text style={styles.configTitle}>Configuración</Text>
 
-          {canConfigureDuration ? (
-            <>
-              <Text style={styles.configLine}>
-                • Duración (1–5 s): {seconds} s
-              </Text>
-              <Text style={styles.configLine}>
-                • Control de tiempo desde la app
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.configLine}>• Duración fija desde sistema</Text>
-              <Text style={styles.configLine}>
-                • Este actuador no es modificable
-              </Text>
-            </>
-          )}
-        </View>
-
-        {canConfigureDuration && showConfig && (
-          <View style={styles.configControls}>
-            <View style={styles.stepperContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.stepperButton,
-                  isConfigDisabled && styles.stepperButtonDisabled,
-                ]}
-                onPress={() => handleChangeSeconds(-1)}
-                disabled={isConfigDisabled}
-              >
-                <Text style={styles.stepperButtonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.stepperValue}>{seconds}s</Text>
-              <TouchableOpacity
-                style={[
-                  styles.stepperButton,
-                  isConfigDisabled && styles.stepperButtonDisabled,
-                ]}
-                onPress={() => handleChangeSeconds(1)}
-                disabled={isConfigDisabled}
-              >
-                <Text style={styles.stepperButtonText}>+</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.saveConfigButton,
-                (isSavingConfig || isConfigDisabled) &&
-                  styles.saveConfigButtonDisabled,
-              ]}
-              activeOpacity={0.8}
-              onPress={handleSaveConfig}
-              disabled={isSavingConfig || isConfigDisabled}
-            >
-              <Text style={styles.saveConfigButtonText}>
-                {isSavingConfig ? 'Guardando...' : 'Guardar'}
-              </Text>
-            </TouchableOpacity>
-
-            {configStatus && (
-              <Text style={styles.configStatusText}>{configStatus}</Text>
+            {canConfigureDuration ? (
+              <>
+                <Text style={styles.configLine}>
+                  • Duración (1–5 s): {seconds} s
+                </Text>
+                <Text style={styles.configLine}>
+                  • Control de tiempo desde la app
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.configLine}>• Duración fija desde sistema</Text>
+                <Text style={styles.configLine}>
+                  • Este actuador no es modificable
+                </Text>
+              </>
             )}
           </View>
-        )}
 
-        {!showConfig && (
-          <View style={styles.configChip}>
-            <Text style={styles.configChipText}>
-              {canConfigureDuration ? 'Configurable' : 'Fijo'}
-            </Text>
+          {/* Columna derecha */}
+          <View style={styles.configRight}>
+            {canConfigureDuration && showConfig && (
+              <View style={styles.configControls}>
+                <View style={styles.stepperContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.stepperButton,
+                      isConfigDisabled && styles.stepperButtonDisabled,
+                    ]}
+                    onPress={() => handleChangeSeconds(-1)}
+                    disabled={isConfigDisabled}
+                  >
+                    <Text style={styles.stepperButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.stepperValue}>{seconds}s</Text>
+                  <TouchableOpacity
+                    style={[
+                      styles.stepperButton,
+                      isConfigDisabled && styles.stepperButtonDisabled,
+                    ]}
+                    onPress={() => handleChangeSeconds(1)}
+                    disabled={isConfigDisabled}
+                  >
+                    <Text style={styles.stepperButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.saveConfigButton,
+                    (isSavingConfig || isConfigDisabled) &&
+                      styles.saveConfigButtonDisabled,
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={handleSaveConfig}
+                  disabled={isSavingConfig || isConfigDisabled}
+                >
+                  <Text style={styles.saveConfigButtonText}>
+                    {isSavingConfig ? 'Guardando...' : 'Guardar'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Chip cuando está cerrado */}
+            {!showConfig && (
+              <View style={styles.configChip}>
+                <Text style={styles.configChipText}>
+                  {canConfigureDuration ? 'Configurable' : 'Fijo'}
+                </Text>
+              </View>
+            )}
           </View>
+        </View>
+
+        {/* Mensaje siempre visible, debajo y usando todo el ancho */}
+        {configStatus && (
+          <Text style={styles.configStatusText}>{configStatus}</Text>
         )}
       </View>
-
       {/* Botones automático / manual */}
       <View style={styles.modeRow}>
         <TouchableOpacity
@@ -658,9 +679,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
   configTitle: {
     fontSize: 12,
@@ -686,14 +704,16 @@ const styles = StyleSheet.create({
 
   configControls: {
     alignItems: 'flex-end',
-    maxWidth: 140,
   },
   configStatusText: {
     marginTop: 4,
     fontSize: 10,
     color: '#16a34a',
     textAlign: 'right',
+    alignSelf: 'stretch', // ocupa el ancho de la tarjeta
+    flexShrink: 1,        // permite que el texto haga wrap
   },
+
   stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -795,5 +815,15 @@ const styles = StyleSheet.create({
   autoInfoText: {
     fontSize: 13,
     color: COLORS.textSecondary,
+  },
+  configRight: {
+    alignItems: 'flex-end',
+    marginLeft: 8,
+    flexShrink: 1, // se encoge en pantallas pequeñas
+  },
+  configRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
 });
