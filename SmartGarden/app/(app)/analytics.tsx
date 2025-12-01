@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '@/components/AppHeader';
+import { IP } from '@/utils/types';
 
 const COLORS = {
   background: '#eff6ff',
@@ -20,7 +21,7 @@ const COLORS = {
   success: '#16a34a',
 };
 
-const API_BASE = 'http://192.168.0.223:8000/system/data-sensors/1';
+const API_BASE = `http://${IP}:8000/system/data-sensors/1`;
 
 type DeviceSensor = {
   device_sensor_id: number;

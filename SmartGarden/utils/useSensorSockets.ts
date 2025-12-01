@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { SensorData } from './types';
+import { IP, SensorData } from './types';
 
 
-const WS_URL = 'ws://192.168.77.172:8000/system/ws/sensor-readings';
+const WS_URL = `ws://${IP}:8000/system/ws/sensor-readings`;
 
 export function useSensorSocket() {
   const [data, setData] = useState<SensorData | null>(null);

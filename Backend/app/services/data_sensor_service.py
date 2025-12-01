@@ -28,7 +28,7 @@ class DataSensorService:
             and_(*base_filter)
         )
 
-        stmt = select(DeviceSensor).where(filter)
+        stmt = select(DeviceSensor).where(filter).limit(20)
 
         result = await self.db.execute(stmt)
 

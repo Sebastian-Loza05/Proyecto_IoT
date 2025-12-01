@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '@/components/AppHeader';
 import { Feather } from '@expo/vector-icons';
+import { IP } from '@/utils/types';
 
 const COLORS = {
   background: '#eff6ff',
@@ -22,7 +23,7 @@ const COLORS = {
   chipTextGray: '#6b7280',
 };
 
-const CONTROLLER_BASE = 'http://192.168.0.223:8000/system/controllers/1';
+const CONTROLLER_BASE =  `http://${IP}:8000/system/controllers/1`;
 
 type FeatherIconName = React.ComponentProps<typeof Feather>['name'];
 type ControllerKey = 'bomba' | 'motor' | 'servo';
